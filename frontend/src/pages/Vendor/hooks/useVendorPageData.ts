@@ -1,52 +1,23 @@
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 
 import { getVendors } from "@/lib/api";
+import { queryKeys } from "@/lib/queryKeys";
 import type { VendorPageDataState } from "@/pages/Vendor/types/vendor";
 
 export function useVendorPageData(): VendorPageDataState {
-  const [vendorRows, setVendorRows] = useState<VendorPageDataState["vendorRows"]>(
-    [],
-  );
-  const [loading, setLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  useEffect(() => {
-    let isMounted = true;
-
-    async function load(): Promise<void> {
-      try {
-        setLoading(true);
-        setErrorMessage(null);
-
-        const rows = await getVendors();
-        if (!isMounted) {
-          return;
-        }
-
-        setVendorRows(rows);
-        setLoading(false);
-      } catch (error) {
-        if (!isMounted) {
-          return;
-        }
-
-        setErrorMessage(
-          error instanceof Error ? error.message : "Failed to load vendors.",
-        );
-        setLoading(false);
-      }
-    }
-
-    void load();
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+  const vendorsQuery = useQuery({
+    queryKey: queryKeys.vendors,
+    queryFn: getVendors,
+  });
 
   return {
-    errorMessage,
-    loading,
-    vendorRows,
+    errorMessage:
+      vendorsQuery.error instanceof Error
+        ? vendorsQuery.error.message
+        : vendorsQuery.error
+          ? "Failed to load vendors."
+          : null,
+    loading: vendorsQuery.isLoading,
+    vendorRows: vendorsQuery.data ?? [],
   };
 }

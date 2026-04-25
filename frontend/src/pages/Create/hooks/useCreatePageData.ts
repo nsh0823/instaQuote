@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type Dispatch, type SetStateAction } from 'react';
+import { useQuery } from '@tanstack/react-query';
 
 import {
   getActiveUserName,
@@ -13,6 +14,7 @@ import {
   getRFQOS,
   getVendors,
 } from '@/lib/api';
+import { queryKeys } from '@/lib/queryKeys';
 import type {
   ClientGroup,
   CountryOption,
@@ -69,6 +71,16 @@ type UseCreatePageDataResult = {
   vendorRows: TableRows;
 };
 
+function getQueryErrorMessage(errors: Array<unknown>): string | null {
+  const error = errors.find(Boolean);
+
+  if (!error) {
+    return null;
+  }
+
+  return error instanceof Error ? error.message : 'Failed to load create page.';
+}
+
 export function useCreatePageData({
   activeRecordId,
   isDraft,
@@ -84,13 +96,55 @@ export function useCreatePageData({
   const [otherFeeGroups, setOtherFeeGroups] = useState<OtherFeeDataset>([]);
   const [rateGroups, setRateGroups] = useState<RateDataset>([]);
   const [vendorRows, setVendorRows] = useState<TableRows>([]);
-  const [isPageLoading, setIsPageLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [loadedKrRows, setLoadedKrRows] = useState<TableRows | null>(null);
   const [initialFinalProgramming, setInitialFinalProgramming] = useState('');
   const [krForm, setKrForm] = useState<KrFormState>(() => createEmptyKrForm(''));
   const [osSetup, setOsSetup] = useState<OsSetupState>(() => createEmptyOsSetup(''));
   const [osPanels, setOsPanels] = useState<OsPanelState[]>([]);
+  const activeUserQuery = useQuery({
+    queryKey: queryKeys.activeUserName,
+    queryFn: getActiveUserName,
+  });
+  const countryQuery = useQuery({
+    queryKey: queryKeys.country,
+    queryFn: getCountry,
+  });
+  const clientQuery = useQuery({
+    queryKey: queryKeys.client,
+    queryFn: getClient,
+  });
+  const compPtQuery = useQuery({
+    queryKey: queryKeys.compPt,
+    queryFn: getCompPt,
+  });
+  const otherFeeQuery = useQuery({
+    queryKey: queryKeys.otherFee,
+    queryFn: getOtherFee,
+  });
+  const rateQuery = useQuery({
+    queryKey: queryKeys.rate,
+    queryFn: getRate,
+  });
+  const vendorsQuery = useQuery({
+    queryKey: queryKeys.vendors,
+    queryFn: getVendors,
+    enabled: mode === 'OS',
+  });
+  const activeKrRecordQuery = useQuery({
+    queryKey: isDraft
+      ? queryKeys.draft(activeRecordId)
+      : queryKeys.rfq(activeRecordId),
+    queryFn: () => (isDraft ? getDraft(activeRecordId) : getRFQ(activeRecordId)),
+    enabled: Boolean(activeRecordId) && mode === 'KR',
+  });
+  const activeOsRecordQuery = useQuery({
+    queryKey: isDraft
+      ? queryKeys.draftOS(activeRecordId)
+      : queryKeys.rfqOS(activeRecordId),
+    queryFn: () =>
+      isDraft ? getDraftOS(activeRecordId) : getRFQOS(activeRecordId),
+    enabled: Boolean(activeRecordId) && mode === 'OS',
+  });
 
   const countryById = useMemo(
     () =>
@@ -101,108 +155,87 @@ export function useCreatePageData({
   );
 
   useEffect(() => {
-    let isMounted = true;
+    const user = activeUserQuery.data;
+    const countryRows = countryQuery.data;
+    const clientData = clientQuery.data;
+    const compPtData = compPtQuery.data;
+    const otherFeeData = otherFeeQuery.data;
+    const rateData = rateQuery.data;
+    const vendorsData = mode === 'OS' ? vendorsQuery.data : [];
 
-    async function load(): Promise<void> {
-      try {
-        setErrorMessage(null);
-        setIsPageLoading(true);
-
-        const [
-          user,
-          countryRows,
-          clientData,
-          compPtData,
-          otherFeeData,
-          rateData,
-          vendorsData,
-        ] = await Promise.all([
-          getActiveUserName(),
-          getCountry(),
-          getClient(),
-          getCompPt(),
-          getOtherFee(),
-          getRate(),
-          mode === 'OS' ? getVendors() : Promise.resolve([] as TableRows),
-        ]);
-
-        if (!isMounted) {
-          return;
-        }
-
-        setActiveUser(user);
-        setCountries(parseCountries(countryRows));
-        setClientGroups(parseClientGroups(clientData as ClientDataset));
-        setGmailEmails(DUMMY_GMAIL_EMAILS);
-        setCompPtRows(compPtData);
-        setOtherFeeGroups(otherFeeData);
-        setRateGroups(rateData);
-        setVendorRows(vendorsData);
-
-        if (activeRecordId) {
-          if (mode === 'KR') {
-            const rows = isDraft
-              ? await getDraft(activeRecordId)
-              : await getRFQ(activeRecordId);
-
-            if (!isMounted) {
-              return;
-            }
-
-            setLoadedKrRows(rows);
-            setInitialFinalProgramming('');
-            setOsPanels([]);
-            setOsSetup(createEmptyOsSetup(user));
-            setKrForm(hydrateKrForm(buildRowMap(rows[0] ?? [], rows[1] ?? []), user));
-          } else {
-            const rows = isDraft
-              ? await getDraftOS(activeRecordId)
-              : await getRFQOS(activeRecordId);
-
-            if (!isMounted) {
-              return;
-            }
-
-            const panels = hydrateOsPanels(rows, user);
-            const firstRowMap = buildRowMap(
-              rows.dataArray[0] ?? [],
-              rows.dataArray[1] ?? [],
-            );
-
-            setLoadedKrRows(null);
-            setInitialFinalProgramming(firstRowMap['Total programming fee'] || '');
-            setKrForm(createEmptyKrForm(user));
-            setOsPanels(panels);
-            setOsSetup(applyOsSetupFromPanels(panels, user));
-          }
-        } else {
-          setLoadedKrRows(null);
-          setInitialFinalProgramming('');
-          setKrForm(createEmptyKrForm(user));
-          setOsPanels([]);
-          setOsSetup(createEmptyOsSetup(user));
-        }
-      } catch (error) {
-        if (!isMounted) {
-          return;
-        }
-
-        setErrorMessage(
-          error instanceof Error ? error.message : 'Failed to load create page.',
-        );
-      } finally {
-        if (isMounted) {
-          setIsPageLoading(false);
-        }
-      }
+    if (
+      user === undefined ||
+      countryRows === undefined ||
+      clientData === undefined ||
+      compPtData === undefined ||
+      otherFeeData === undefined ||
+      rateData === undefined ||
+      vendorsData === undefined
+    ) {
+      return;
     }
 
-    void load();
+    setActiveUser(user);
+    setCountries(parseCountries(countryRows));
+    setClientGroups(parseClientGroups(clientData as ClientDataset));
+    setGmailEmails(DUMMY_GMAIL_EMAILS);
+    setCompPtRows(compPtData);
+    setOtherFeeGroups(otherFeeData);
+    setRateGroups(rateData);
+    setVendorRows(vendorsData);
 
-    return () => {
-      isMounted = false;
-    };
-  }, [activeRecordId, isDraft, mode]);
+    if (activeRecordId) {
+      if (mode === 'KR') {
+        const rows = activeKrRecordQuery.data;
+
+        if (!rows) {
+          return;
+        }
+
+        setLoadedKrRows(rows);
+        setInitialFinalProgramming('');
+        setOsPanels([]);
+        setOsSetup(createEmptyOsSetup(user));
+        setKrForm(hydrateKrForm(buildRowMap(rows[0] ?? [], rows[1] ?? []), user));
+      } else {
+        const rows = activeOsRecordQuery.data;
+
+        if (!rows) {
+          return;
+        }
+
+        const panels = hydrateOsPanels(rows, user);
+        const firstRowMap = buildRowMap(
+          rows.dataArray[0] ?? [],
+          rows.dataArray[1] ?? [],
+        );
+
+        setLoadedKrRows(null);
+        setInitialFinalProgramming(firstRowMap['Total programming fee'] || '');
+        setKrForm(createEmptyKrForm(user));
+        setOsPanels(panels);
+        setOsSetup(applyOsSetupFromPanels(panels, user));
+      }
+    } else {
+      setLoadedKrRows(null);
+      setInitialFinalProgramming('');
+      setKrForm(createEmptyKrForm(user));
+      setOsPanels([]);
+      setOsSetup(createEmptyOsSetup(user));
+    }
+  }, [
+    activeKrRecordQuery.data,
+    activeOsRecordQuery.data,
+    activeRecordId,
+    activeUserQuery.data,
+    clientQuery.data,
+    compPtQuery.data,
+    countryQuery.data,
+    mode,
+    otherFeeQuery.data,
+    rateQuery.data,
+    vendorsQuery.data,
+  ]);
 
   function createOsPanelsFromSelection(): void {
     const nextPanels = osSetup.selectedCountries
@@ -216,6 +249,30 @@ export function useCreatePageData({
   function resetKrForm(): void {
     setKrForm(createEmptyKrForm(activeUser));
   }
+
+  const errorMessage = getQueryErrorMessage([
+    activeUserQuery.error,
+    countryQuery.error,
+    clientQuery.error,
+    compPtQuery.error,
+    otherFeeQuery.error,
+    rateQuery.error,
+    vendorsQuery.error,
+    activeKrRecordQuery.error,
+    activeOsRecordQuery.error,
+  ]);
+  const isPageLoading =
+    activeUserQuery.isLoading ||
+    countryQuery.isLoading ||
+    clientQuery.isLoading ||
+    compPtQuery.isLoading ||
+    otherFeeQuery.isLoading ||
+    rateQuery.isLoading ||
+    (mode === 'OS' && vendorsQuery.isLoading) ||
+    (Boolean(activeRecordId) &&
+      (mode === 'KR'
+        ? activeKrRecordQuery.isLoading
+        : activeOsRecordQuery.isLoading));
 
   return {
     activeUser,

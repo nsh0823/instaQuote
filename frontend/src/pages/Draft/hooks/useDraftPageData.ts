@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 
 import { getDraft, getDraftOS } from "@/lib/api";
+import { queryKeys } from "@/lib/queryKeys";
 import type {
   CellMergeState,
   GroupedRecord,
@@ -257,56 +259,50 @@ export function useDraftPageData(mode: ListMode): {
 } {
   const [header, setHeader] = useState<string[]>([]);
   const [records, setRecords] = useState<GroupedRecord[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const krDraftQuery = useQuery({
+    queryKey: queryKeys.draft(),
+    queryFn: () => getDraft(),
+    select: (rows) => {
+      const grouped = groupDraftKrRows(rows);
+      return buildDraftData(grouped.header, grouped.records);
+    },
+    enabled: mode === "KR",
+  });
+  const osDraftQuery = useQuery({
+    queryKey: queryKeys.draftOS(),
+    queryFn: () => getDraftOS(),
+    select: (payload) => {
+      const grouped = groupDraftOsRows(payload);
+      return buildDraftData(grouped.header, grouped.records);
+    },
+    enabled: mode === "OS",
+  });
+  const draftData = mode === "KR" ? krDraftQuery.data : osDraftQuery.data;
+  const draftError = mode === "KR" ? krDraftQuery.error : osDraftQuery.error;
+  const draftLoading =
+    mode === "KR" ? krDraftQuery.isLoading : osDraftQuery.isLoading;
 
   useEffect(() => {
-    let isMounted = true;
-
-    async function load(): Promise<void> {
-      try {
-        setLoading(true);
-        setErrorMessage(null);
-
-        const grouped =
-          mode === "KR"
-            ? groupDraftKrRows(await getDraft())
-            : groupDraftOsRows(await getDraftOS());
-
-        if (!isMounted) {
-          return;
-        }
-
-        const draftData = buildDraftData(grouped.header, grouped.records);
-        setHeader(draftData.header);
-        setRecords(draftData.records);
-        setLoading(false);
-      } catch (error) {
-        if (!isMounted) {
-          return;
-        }
-
-        setErrorMessage(
-          error instanceof Error ? error.message : "Failed to load drafts.",
-        );
-        setLoading(false);
-      }
+    if (!draftData) {
+      return;
     }
 
-    void load();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [mode]);
+    setHeader(draftData.header);
+    setRecords(draftData.records);
+  }, [draftData]);
 
   const dateColumnKey = useMemo(() => getListDateColumnKey(mode), [mode]);
 
   return {
     dateColumnKey,
-    errorMessage,
+    errorMessage:
+      draftError instanceof Error
+        ? draftError.message
+        : draftError
+          ? "Failed to load drafts."
+          : null,
     header,
-    loading,
+    loading: draftLoading,
     records,
     sheetUrl: DRAFT_SHEET_URLS[mode],
   };

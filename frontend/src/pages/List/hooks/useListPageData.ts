@@ -5,8 +5,10 @@ import {
   type Dispatch,
   type SetStateAction,
 } from "react";
+import { useQuery } from "@tanstack/react-query";
 
 import { getRFQ, getRFQOS } from "@/lib/api";
+import { queryKeys } from "@/lib/queryKeys";
 import type {
   GroupedRecord,
   ListMode,
@@ -31,56 +33,31 @@ export function useListPageData(mode: ListMode): {
 } {
   const [header, setHeader] = useState<string[]>([]);
   const [records, setRecords] = useState<GroupedRecord[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const krListQuery = useQuery({
+    queryKey: queryKeys.rfq(),
+    queryFn: () => getRFQ(),
+    select: groupKrRows,
+    enabled: mode === "KR",
+  });
+  const osListQuery = useQuery({
+    queryKey: queryKeys.rfqOS(),
+    queryFn: () => getRFQOS(),
+    select: groupOsRows,
+    enabled: mode === "OS",
+  });
+  const listData = mode === "KR" ? krListQuery.data : osListQuery.data;
+  const listError = mode === "KR" ? krListQuery.error : osListQuery.error;
+  const listLoading =
+    mode === "KR" ? krListQuery.isLoading : osListQuery.isLoading;
 
   useEffect(() => {
-    let isMounted = true;
-
-    async function load(): Promise<void> {
-      try {
-        setLoading(true);
-        setErrorMessage(null);
-
-        if (mode === "KR") {
-          const rows = await getRFQ();
-          if (!isMounted) {
-            return;
-          }
-
-          const grouped = groupKrRows(rows);
-          setHeader(grouped.header);
-          setRecords(grouped.records);
-        } else {
-          const rows = await getRFQOS();
-          if (!isMounted) {
-            return;
-          }
-
-          const grouped = groupOsRows(rows);
-          setHeader(grouped.header);
-          setRecords(grouped.records);
-        }
-
-        setLoading(false);
-      } catch (error) {
-        if (!isMounted) {
-          return;
-        }
-
-        setErrorMessage(
-          error instanceof Error ? error.message : "Failed to load list.",
-        );
-        setLoading(false);
-      }
+    if (!listData) {
+      return;
     }
 
-    void load();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [mode]);
+    setHeader(listData.header);
+    setRecords(listData.records);
+  }, [listData]);
 
   const lastUpdatedColumnKey = useMemo(
     () => findColumnName(header, ["Last updated", "Last Updated"]),
@@ -89,10 +66,15 @@ export function useListPageData(mode: ListMode): {
 
   return {
     dateColumnKey: getListDateColumnKey(mode),
-    errorMessage,
+    errorMessage:
+      listError instanceof Error
+        ? listError.message
+        : listError
+          ? "Failed to load list."
+          : null,
     header,
     lastUpdatedColumnKey,
-    loading,
+    loading: listLoading,
     records,
     setRecords,
     sheetUrl: getListSheetUrl(mode),
