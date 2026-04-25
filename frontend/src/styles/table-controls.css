@@ -1,0 +1,246 @@
+.table-filter-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  height: 30px;
+  border: 1px solid #e4e4e4;
+  border-radius: 0.5rem;
+  padding: 0 0.75rem;
+  background: #fff;
+  color: #595c5f;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.table-filter-trigger:hover,
+.table-filter-trigger[data-open="true"] {
+  background: #764cfc;
+  border-color: #764cfc;
+  color: #fff;
+}
+
+.table-filter-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 15px;
+  height: 15px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: #764cfc;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.table-filter-trigger:hover .table-filter-count,
+.table-filter-trigger[data-open="true"] .table-filter-count {
+  background: #fff;
+  color: #764cfc;
+}
+
+.table-link-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid #e4e4e4;
+  border-radius: 0.5rem;
+  background: #fff;
+  color: #595c5f;
+  transition:
+    border-color 0.2s ease,
+    color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.table-link-button:hover {
+  border-color: #764cfc;
+  color: #764cfc;
+  background: #faf7ff;
+}
+
+.table-filter-panel {
+  position: absolute;
+  top: calc(100% + 0.55rem);
+  left: 0;
+  z-index: 30;
+  width: 245px;
+  border: 1px solid rgba(0, 0, 0, 0.175);
+  border-radius: 0.75rem;
+  background: #fff;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+}
+
+.table-filter-panel-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 0.875rem 0.5rem;
+}
+
+.table-filter-clear-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+  border: 0;
+  background: transparent;
+  color: #595c5f;
+  font-size: 12px;
+}
+
+.table-filter-clear-button:hover:not(:disabled) {
+  color: #764cfc;
+}
+
+.table-filter-clear-button:disabled {
+  opacity: 0.45;
+}
+
+.table-filter-panel-content {
+  margin: 0;
+}
+
+.table-filter-section {
+  border-bottom: 1px solid #dee2e6;
+}
+
+.table-filter-section:last-child {
+  border-bottom: 0;
+}
+
+.table-filter-section-trigger {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  border: 0;
+  background: #fff;
+  padding: 0.75rem 1rem;
+  color: #3d3d43;
+  font-size: 13px;
+  text-align: left;
+}
+
+.table-filter-section-trigger:hover,
+.table-filter-section-trigger[data-open="true"] {
+  background: #f9f9f9;
+}
+
+.table-filter-subtotal {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 14px;
+  height: 14px;
+  padding: 0 3px;
+  border: 1px solid #764cfc;
+  border-radius: 4px;
+  color: #764cfc;
+  font-size: 9px;
+  line-height: 1;
+}
+
+.table-filter-section-body {
+  background: #f9f9f9;
+  padding: 0 1rem 0.65rem;
+}
+
+.table-filter-search {
+  width: 100%;
+  height: 30px;
+  border: 1px solid #e4e4e4;
+  border-radius: 0.5rem;
+  padding: 0 0.625rem;
+  background: #fff;
+  color: #3d3d43;
+  font-size: 12px;
+}
+
+.table-filter-search:focus {
+  border-color: #764cfc;
+  outline: none;
+}
+
+.table-filter-list {
+  max-height: 160px;
+  overflow-y: auto;
+  margin-top: 0.5rem;
+  padding-right: 0.125rem;
+}
+
+.table-filter-empty {
+  padding: 0.5rem 0.25rem 0.1rem;
+  color: #7a7a7f;
+  font-size: 12px;
+}
+
+.table-filter-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  border-radius: 0.5rem;
+  padding: 0.3rem 0.35rem;
+  color: #3d3d43;
+  font-size: 12px;
+}
+
+.table-filter-option:hover {
+  background: #f9f9f9;
+}
+
+.table-sort-trigger {
+  display: inline-flex;
+  width: 100%;
+  align-items: center;
+  gap: 0.15rem;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: inherit;
+  text-align: left;
+}
+
+.table-sort-trigger:hover {
+  color: #764cfc;
+}
+
+.table-pagination {
+  display: inline-flex;
+  align-items: center;
+  column-gap: 3px;
+}
+
+.table-pagination-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 29px;
+  height: 29px;
+  border: 0;
+  border-radius: 999px;
+  background: #fff;
+  color: #5b5b5b;
+  font-size: 13px;
+}
+
+.table-pagination-button:hover:not(:disabled) {
+  color: #764cfc;
+}
+
+.table-pagination-button.is-active {
+  background: #764cfc;
+  color: #fff;
+}
+
+.table-pagination-button:disabled {
+  opacity: 0.45;
+}
