@@ -1,0 +1,11 @@
+# Ignore everything by default.
+**/*
+
+# Re-include directories so nested source files can be matched.
+!*/
+
+# Include only Apps Script backend sources + manifest.
+!appsscript.json
+!**/*.gs
+!**/*.js
+!**/*.ts
