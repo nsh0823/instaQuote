@@ -4,6 +4,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   BsBarChartLine,
   BsBoxArrowUpRight,
@@ -19,6 +20,7 @@ import { Link, useLocation } from "react-router-dom";
 
 import { useAppContext } from "../../context/AppContext";
 import { getLink } from "../../lib/api";
+import { queryKeys } from "@/lib/queryKeys";
 
 import Logo from "@/assets/logo/logo.png";
 
@@ -118,7 +120,6 @@ export function Navbar({
   const currentMode = currentModeProp ?? getCurrentMode(location.pathname);
   const [isExpanded, setIsExpanded] = useState(false);
   const [navRfqMode, setNavRfqMode] = useState<"KR" | "OS">(rfqMode);
-  const [externalLinks, setExternalLinks] = useState<string[][]>([]);
   const [languageMenuOpen, setLanguageMenuOpen] = useState(false);
   const [languageMenuFocused, setLanguageMenuFocused] = useState(false);
   const [linksMenuOpen, setLinksMenuOpen] = useState(false);
@@ -130,23 +131,11 @@ export function Navbar({
     setNavRfqMode(rfqMode);
   }, [rfqMode]);
 
-  useEffect(() => {
-    let isMounted = true;
-
-    getLink()
-      .then((data) => {
-        if (isMounted) {
-          setExternalLinks(data);
-        }
-      })
-      .catch((error) => {
-        console.error("Failed to load external links:", error);
-      });
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+  const externalLinksQuery = useQuery({
+    queryKey: queryKeys.link,
+    queryFn: getLink,
+  });
+  const externalLinks = externalLinksQuery.data ?? [];
 
   useEffect(() => {
     function handlePointerDown(event: MouseEvent): void {
