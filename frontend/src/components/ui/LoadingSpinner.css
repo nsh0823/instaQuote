@@ -1,0 +1,25 @@
+.iq-loading-spinner-root {
+  align-items: center;
+  color: #7b8490;
+  column-gap: 8px;
+  display: inline-flex;
+  font-size: 12px;
+  justify-content: center;
+}
+
+.iq-loading-spinner-icon {
+  animation: iq-loading-spin 0.9s linear infinite;
+  border: 2px solid #d7dbe8;
+  border-radius: 999px;
+  border-top-color: #764cfc;
+  display: inline-block;
+  flex-shrink: 0;
+  height: 14px;
+  width: 14px;
+}
+
+@keyframes iq-loading-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
