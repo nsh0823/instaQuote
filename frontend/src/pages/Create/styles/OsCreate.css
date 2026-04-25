@@ -1,0 +1,71 @@
+.os-main-save-btn {
+  background-image: linear-gradient(to right, #2959fa, #8035ff, #6535ff, #c583ff);
+  background-size: 300% 100%;
+}
+
+.os-main-save-btn:hover {
+  background-position: 100% 0;
+}
+
+.os-flash-save-btn {
+  animation: os-flash-save-btn 2s infinite;
+}
+
+.os-flash-save-btn:hover {
+  animation: none;
+}
+
+.os-page-title-country {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  column-gap: 8px;
+  font-size: 22px;
+  font-weight: 600;
+  color: #3d3d43;
+  animation: os-page-title-country-fade-in 0.4s linear forwards;
+}
+
+.os-page-title-country-flag-shell {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  box-shadow: inset 0 0 3px 4px rgb(99 101 103 / 10%);
+}
+
+.os-page-title-country-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.os-country-card:not(:last-child) {
+  border-bottom: 1px solid transparent;
+  border-image: linear-gradient(
+    to right,
+    rgba(56, 2, 155, 0),
+    rgba(221, 225, 230, 0.6) 15%,
+    rgba(221, 225, 230, 0.6) 50%,
+    rgba(221, 225, 230, 0.6) 85%,
+    rgba(56, 2, 155, 0)
+  );
+  border-image-slice: 1;
+}
+
+@keyframes os-page-title-country-fade-in {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes os-flash-save-btn {
+  50% {
+    box-shadow: 0 0 0.25rem #7325e1cc, 0 0 0.5rem #cdd4ff, 0 0 0.75rem #674bf4;
+    background-position: 100% 0;
+  }
+}

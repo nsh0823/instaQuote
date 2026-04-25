@@ -1,0 +1,19 @@
+.kr-main-save-btn {
+    background-image: linear-gradient(to right, #2959fa, #8035ff, #6535ff, #c583ff);
+    background-size: 300% 100%;
+}
+.kr-main-save-btn:hover {
+    background-position: 100% 0;
+}
+.kr-flash-save-btn {
+    animation: kr-flash-save-btn 2s infinite;
+}
+.kr-flash-save-btn:hover {
+    animation: none;
+}
+@keyframes kr-flash-save-btn {
+    50% {
+    box-shadow: 0 0 0.25rem #7325e1cc, 0 0 0.5rem #cdd4ff, 0 0 0.75rem #674bf4;
+    background-position: 100% 0;
+    }
+}

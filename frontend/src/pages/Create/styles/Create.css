@@ -1,0 +1,5 @@
+.rdrCalendarWrapper {
+  border: 1px solid #e4e4e4;
+  border-radius: 0.5rem;
+  overflow: hidden; /* keeps inner calendar corners rounded */
+}
