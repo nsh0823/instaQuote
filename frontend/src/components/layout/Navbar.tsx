@@ -20,6 +20,8 @@ import { Link, useLocation } from "react-router-dom";
 import { useAppContext } from "../../context/AppContext";
 import { getLink } from "../../lib/api";
 
+import Logo from "@/assets/logo/logo.png";
+
 type NavItem = {
   key: string;
   label: string;
@@ -203,14 +205,14 @@ export function Navbar({
       }}
     >
       <div className="flex h-[calc(100%-40px)] flex-col items-center overflow-hidden">
-        <div className="mb-1 w-full px-0">
+        <div className="mt-3 mb-1 w-full px-0">
           <Link
             to={buildInternalHref("index")}
             className="flex items-center justify-center font-['Quattrocento_Sans'] text-[28px] no-underline p-3 hover:no-underline"
           >
             <img
               className="shrink-0 object-contain size-8.75"
-              src="https://i.postimg.cc/2qPmbrwS/insta-Quote-logo-final.png"
+              src={Logo}
               alt="instaQuote"
             />
             <div
