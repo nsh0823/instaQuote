@@ -1,0 +1,15 @@
+export const queryKeys = {
+  activeUserName: ["active-user-name"] as const,
+  client: ["client"] as const,
+  compPt: ["comp-pt"] as const,
+  country: ["country"] as const,
+  draft: (rfqId = "") => ["draft", "KR", rfqId] as const,
+  draftOS: (rfqId = "") => ["draft", "OS", rfqId] as const,
+  link: ["link"] as const,
+  otherFee: ["other-fee"] as const,
+  rate: ["rate"] as const,
+  rfq: (rfqId = "") => ["rfq", "KR", rfqId] as const,
+  rfqOS: (rfqId = "") => ["rfq", "OS", rfqId] as const,
+  rfqStatusInfo: ["rfq-status-info"] as const,
+  vendors: ["vendors"] as const,
+};
